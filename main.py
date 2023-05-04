@@ -1,11 +1,32 @@
 import enum
-import uuid
+import random
 from typing import List, Optional
 
-CURRENT_TIME = 0  # current time in months
+from faker import Faker
+
+from utils import IOUtils
 
 
-class UserStatusSavingEnum(enum.Enum, str):
+class Session:
+    current_time: int  # current time in months
+    users: List["User"]
+    faker: Faker
+
+    def __init__(self):
+        self.users = []
+        self.admins = []
+        self.current_time = 0
+        self.faker = Faker()
+
+    def populate_db(self):
+        for _ in range(10):
+            user = User(self, saving=10_000)
+            for _ in range(random.randint(0, 3)):
+                user.add_loan(Loan(1000, self.current_time))
+            self.users.append(user)
+
+
+class UserStatusSavingEnum(str, enum.Enum):
     UNPAID_LOANS = "UNPAID_LOANS"  # start draining savings account
     LOCKED = "LOCKED"
     ACTIVE = "ACTIVE"
@@ -23,13 +44,15 @@ class Loan:
 
 
 class User:
-    id: uuid.UUID
+    username: str
+    full_name: str
     loans: List[Loan]
     saving: int
     status: UserStatusSavingEnum
 
-    def __init__(self, loans: Optional[Loan] = None, saving: int = 0):
-        self.id = uuid.UUID()
+    def __init__(self, session: Session, loans: Optional[Loan] = None, saving: int = 0):
+        self.full_name = session.faker.unique.first_name() + " " + session.faker.unique.last_name()
+        self.username = self.full_name.lower().replace(" ", "_")
         self.loans = loans or []
         self.saving = saving
         self.status = UserStatusSavingEnum.ACTIVE
@@ -57,3 +80,24 @@ class User:
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
         self.saving += amount
+
+    def __repr__(self):
+        return f"User(username={self.username}, full_name={self.full_name}, loans={self.loans}, saving={self.saving}, status={self.status})"
+
+
+if __name__ == "__main__":
+    print("Welcome to the bank!")
+    session = Session()
+    session.populate_db()
+
+    print("Choose the mode:"
+          "\n1. Im am the user"
+          "\n2. I am the administrator")
+    mode: int = IOUtils.input_int("Enter the mode (1 or 2): ", upper_bound=2, lower_bound=1)
+    if mode == 1:
+        print("Welcome to the user mode!")
+        print("Log in as a user:")
+        for i, user in enumerate(session.users):
+            print(f"{i + 1} - {user.full_name}")
+        user_index = IOUtils.input_int("Enter the number of the user: ", upper_bound=len(session.users), lower_bound=1)
+        user = session.users[user_index - 1]
