@@ -101,3 +101,19 @@ if __name__ == "__main__":
             print(f"{i + 1} - {user.full_name}")
         user_index = IOUtils.input_int("Enter the number of the user: ", upper_bound=len(session.users), lower_bound=1)
         user = session.users[user_index - 1]
+        print(f"Hello, {user.full_name}!")
+    if mode == 2:
+        print("Welcome to the administrator mode! \n"
+              "You can view all the users and their details and run simulations.")
+        print("Select an action:\n"
+              "1. View all users\n"
+              "2. Run simulation")
+        action = IOUtils.input_int("Enter the number of the action: ", upper_bound=2, lower_bound=1)
+        if action == 1:
+            for i, user in enumerate(session.users):
+                print(f"{i + 1} - {user.full_name}, Savings: {user.saving}, status: {user.status}")
+                for loan in user.loans:
+                    print(
+                        " " * 10 + f"Loan: {loan.sum}, initiated at: {loan.initiated_at}, time left: {loan.initiated_at + 12 - session.current_time}")
+                if not user.loans:
+                    print(" " * 10 + "No loans")
