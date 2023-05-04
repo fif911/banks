@@ -4,7 +4,7 @@ from user_panel import handle_user_mode
 from utils import IOUtils
 
 if __name__ == "__main__":
-    session = Session()
+    session = Session()  # intantiate the session
     session.populate_db()
 
     while True:
