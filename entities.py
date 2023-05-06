@@ -17,9 +17,9 @@ class Session:
 
     def populate_db(self):
         for _ in range(10):
-            user = User(self, saving=10_000)
+            user = User(self, saving=random.randint(0, 50_000))
             for _ in range(random.randint(0, 3)):
-                user.add_loan(Loan(1000, self.current_time))
+                user.add_loan(Loan(random.randint(0, 10_000), self.current_time))
             self.users.append(user)
 
 
