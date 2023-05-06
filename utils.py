@@ -4,6 +4,7 @@ from typing import Optional, List
 class IOUtils:
     @staticmethod
     def input_int(message, lower_bound=None, upper_bound=None):
+        """Function that asks the user for input of the integer value withing specified range and returns the value"""
         while True:
             try:
                 value = int(input(message))
@@ -17,6 +18,9 @@ class IOUtils:
 
     @staticmethod
     def input_str(message, expected_values: Optional[List[str]] = None):
+        """Function that asks the user for input of the preselected string values and returns the value
+
+        Function repeats until the user enters a valid value"""
         while True:
             value = input(message)
             if expected_values is not None and value not in expected_values:
@@ -26,6 +30,10 @@ class IOUtils:
 
     @staticmethod
     def print_menu_and_return_choice(menu: List[str], intro_message="Select an action:", ) -> int:
+        """Print menu and return the number of the selected action
+
+        Function repeats until the user enters a valid number
+        """
         print(intro_message)
         for i, item in enumerate(menu):
             print(f"{i + 1}. {item}")
