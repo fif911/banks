@@ -24,7 +24,7 @@ class Session:
 
 
 class UserStatusSavingEnum(str, enum.Enum):
-    UNPAID_LOANS = "UNPAID_LOANS"  # start draining savings account
+    OVERDUE_LOANS = "OVERDUE_LOANS"  # start draining savings account
     LOCKED = "LOCKED"
     ACTIVE = "ACTIVE"
 
@@ -81,7 +81,7 @@ class User:
     def add_loan(self, loan: Loan):
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
-        if self.status == UserStatusSavingEnum.UNPAID_LOANS:
+        if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
         if len(self.loans) > 3:
             raise ValueError("User can not have more than 3 loans concurrently")
@@ -90,7 +90,7 @@ class User:
     def withdraw_savings(self, amount):
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
-        if self.status == UserStatusSavingEnum.UNPAID_LOANS:
+        if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
         if amount > self.saving:
             raise ValueError("Not enough money in savings account")

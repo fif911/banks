@@ -20,7 +20,7 @@ def handle_user_mode(session: Session):
             print(f"Loan: €{loan.sum}, initiated at: {loan.initiated_at}, "
                   f"interest_rate {loan.interest_rate}, expired: {loan.is_expired(session)}")
         print(f"Your status is {user.status}")
-        if user.status == UserStatusSavingEnum.UNPAID_LOANS:
+        if user.status == UserStatusSavingEnum.OVERDUE_LOANS:
             print("You have unpaid loans for more than 12 months. "
                   "You cannot withdraw from savings account or take new loans.")
             action = IOUtils.print_menu_and_return_choice(
