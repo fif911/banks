@@ -12,9 +12,8 @@ def handle_administration_mode(session: Session):
             for i, user in enumerate(session.users):
                 print(f"{i + 1} - {user.full_name}, Savings: €{user.saving}, status: {user.status}")
                 for loan in user.loans:
-                    print(" " * 10
-                          + f"Loan: €{loan.sum}, initiated at: {loan.initiated_at}, "
-                            f"interest_rate {loan.interest_rate}, expired: {loan.is_expired(session)}")
+                    loan.pretty_print_loan(session, prefix=" " * 10)
+
                 if not user.loans:
                     print(" " * 10 + "No loans")
         if action == 2:
