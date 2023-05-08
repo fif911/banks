@@ -13,6 +13,9 @@ def handle_user_deposit_money_action(user):
 
 
 def handle_user_withdraw_money_action(user):
+    if user.savings_account.savings_amount <= 0:
+        print("You have no money in your savings account. Thus it is not possible to withdraw money.")
+        return
     withdraw_amount = IOUtils.input_float("Enter the amount you want to withdraw: ", lower_bound=1,
                                           upper_bound=user.savings_account.savings_amount)
     user.withdraw_savings(withdraw_amount)
@@ -46,7 +49,6 @@ def handle_user_pay_a_loan_action(user):
         lower_bound=0.01, upper_bound=loan.sum)
 
     user.pay_loan(loan, pay_amount)
-
 
 
 class UserActionEnum(enum.Enum):
