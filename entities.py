@@ -188,6 +188,10 @@ class User:
         if len(self.loans) > 3:
             raise ValueError("User can not have more than 3 loans concurrently")
         self.loans.append(loan)
+        self.savings_account.savings_amount = IOUtils.round_float_to_2_decimal_places(
+            self.savings_account.savings_amount + loan.sum
+        )
+        print(f"Loan added successfully. €{loan.sum} were deposited to your savings account. Thank you!")
 
     def pay_loan(self, loan: Loan, amount: float, prefix: str = ""):
         """Function that allows user to pay for a loan and removes the loan if it is paid in full"""
