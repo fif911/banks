@@ -29,8 +29,7 @@ class IOUtils:
         while True:
             try:
                 value = float(input(
-                    message + " \nNote: use dot as a decimal separator and the maximum precision is 2 "
-                              "(otherwise the value will be rounded to 2 decimal places)"))
+                    10 * " " + "(Note: the input is rounded to 2 decimal places; use dot as a decimal separator)\n" + message))
                 if lower_bound is not None and value < lower_bound:
                     raise ValueError(f"Value must be at least {lower_bound}")
                 if upper_bound is not None and value > upper_bound:
@@ -69,3 +68,7 @@ class IOUtils:
         print("-" * 15)
         print(header)
         print("-" * 15)
+
+    @staticmethod
+    def print_section(message: str):
+        print("-" * 10 + message + "-" * 10)
