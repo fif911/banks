@@ -94,8 +94,11 @@ class Loan:
         loan_print = prefix + f"Loan: €{self.sum}, initiated at: {self.initiated_at}, " \
                               f"interest_rate {self.interest_rate}, expired: {self.is_expired(session)}"
         # add the expiration date if the loan is not expired
-        loan_print = loan_print + f", expires in: {self.expires_in(session)}" \
-            if self.is_expired(session) is False else loan_print
+        if not self.is_expired(session):
+            if self.expires_in(session) == 1:
+                loan_print = loan_print + "expires NEXT month"
+            else:
+                loan_print = loan_print + f", expires in: {self.expires_in(session)}"
         print(loan_print)
 
     @staticmethod
