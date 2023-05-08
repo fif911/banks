@@ -62,3 +62,10 @@ class IOUtils:
             print(f"{i + 1}. {item}")
         menu_option = IOUtils.input_int("Enter the number of the action: ", upper_bound=len(menu), lower_bound=1)
         return menu_option
+
+    @staticmethod
+    def print_header(header: str):
+        """Prints the header of the section"""
+        print("-" * 15)
+        print(header)
+        print("-" * 15)
