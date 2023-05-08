@@ -8,7 +8,7 @@ if __name__ == "__main__":
     session.populate_db()
 
     while True:
-        print("Welcome to the bank!")
+        IOUtils.print_header("Welcome to the bank!")
         mode = IOUtils.print_menu_and_return_choice(["User mode", "Administrator mode", "Exit the program"],
                                                     "Choose the mode:")
         if mode == 1:
