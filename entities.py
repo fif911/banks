@@ -197,13 +197,15 @@ class User:
         print(f"Loan added successfully. €{loan.sum} were deposited to your savings account. Thank you!")
 
     def pay_loan(self, loan: Loan, amount: float, prefix: str = ""):
-        """Function that allows user to pay for a loan and removes the loan if it is paid in full"""
+        """Function that allows user to pay for a loan and removes the loan if it is paid in full
+
+        Function will deduct the respective amount from the savings account"""
         status = loan.pay(amount, prefix=prefix)
         self.savings_account.savings_amount = IOUtils.round_float_to_2_decimal_places(
             self.savings_account.savings_amount - amount
         )
 
-        # remove loan from the user object if it is paid and keep if is not
+        # Remove loan from the user object if it is paid and keep if is not
         if status == LoanStatusEnum.PAID:
             self.loans.remove(loan)
 
