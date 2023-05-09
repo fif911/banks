@@ -51,7 +51,8 @@ class IOUtils:
             return value
 
     @staticmethod
-    def print_menu_and_return_choice(menu: List[str], intro_message="Select an action:", ) -> int:
+    def print_menu_and_return_choice(menu: List[str], intro_message="Select an action:",
+                                     choice_message="Enter the number of the action: ") -> int:
         """Print menu and return the number of the selected action
 
         Function repeats until the user enters a valid number
@@ -59,7 +60,7 @@ class IOUtils:
         print(intro_message)
         for i, item in enumerate(menu):
             print(f"{i + 1}. {item}")
-        menu_option = IOUtils.input_int("Enter the number of the action: ", upper_bound=len(menu), lower_bound=1)
+        menu_option = IOUtils.input_int(choice_message, upper_bound=len(menu), lower_bound=1)
         return menu_option
 
     @staticmethod
