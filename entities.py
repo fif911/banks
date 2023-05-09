@@ -12,18 +12,20 @@ class Session:
     current_time: int  # current time in months
     users: List["User"]
     faker: Faker
+    money_in_bank: float
 
     def __init__(self):
         self.users = []
         self.current_time = 0
         self.faker = Faker()
+        self.money_in_bank = 1_000_000  # 1 million euro TODO: incorporate this
 
     def populate_db(self):
         with unittest.mock.patch(print.__module__ + ".print"):
             for _ in range(10):
                 user = User(self)
                 for _ in range(random.randint(0, 3)):
-                    user.add_loan(Loan(random.randint(0, 10_000), self.current_time))
+                    user.add_loan(Loan(random.randint(1, 10_000), self.current_time))
                 user.savings_account.savings_amount = random.randint(0, 30_000)
                 self.users.append(user)
 
