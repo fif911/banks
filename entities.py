@@ -130,7 +130,7 @@ class SavingsAccount:
     interest_rate: float
 
     @staticmethod
-    def _define_rate_for_amount(amount: float):
+    def define_rate_for_amount(amount: float):
         """Function that sets interest rate depending on the amount of savings
 
         If the amount of savings is more than €10,000, the interest rate is 5.5%;
@@ -144,7 +144,7 @@ class SavingsAccount:
     def __init__(self, savings_amount: float):
         savings_amount = float(savings_amount)  # ensure that amount is float
         self.savings_amount = savings_amount
-        self.interest_rate = self._define_rate_for_amount(savings_amount)
+        self.interest_rate = self.define_rate_for_amount(savings_amount)
 
     def add_savings(self, amount: float):
         if amount <= 0:
@@ -165,7 +165,7 @@ class SavingsAccount:
         monthly_interest_rate = self.interest_rate / 12
         self.savings_amount = IOUtils.round_float_to_2_decimal_places(
             self.savings_amount * (1 + monthly_interest_rate))
-        self.interest_rate = self._define_rate_for_amount(self.savings_amount)
+        self.interest_rate = self.define_rate_for_amount(self.savings_amount)
 
     def __str__(self):
         return f"Savings Account details: savings: €{self.savings_amount:.2f} at interest_rate of {self.interest_rate * 100}%"
@@ -198,7 +198,7 @@ class User:
         )
         print(f"Loan added successfully. €{loan.sum} were deposited to your savings account. Thank you!")
 
-    def pay_loan(self, loan: Loan, amount: float, prefix: str = ""):
+    def pay_loan(self, session: Session, loan: Loan, amount: float, prefix: str = ""):
         """Function that allows user to pay for a loan and removes the loan if it is paid in full
 
         Function will deduct the respective amount from the savings account"""
@@ -212,6 +212,26 @@ class User:
         # Remove loan from the user object if it is paid and keep if is not
         if status == LoanStatusEnum.PAID:
             self.loans.remove(loan)
+
+        # Set user status back to active if all overdue loans are paid
+        if self.status == UserStatusSavingEnum.OVERDUE_LOANS and self.has_no_overdue_loans(session):
+            print("You have paid out all overdue loans. Your account is set back to ACTIVE. Congratulations!")
+            self.status = UserStatusSavingEnum.ACTIVE
+
+    def at_least_one_user_loan_is_overdue(self, session: Session):
+        return any([user_loan.is_expired(session) for user_loan in self.loans])
+
+    def has_no_overdue_loans(self, session: Session):
+        """Function to check if user has no expired loans.
+
+        Returns True if all loans that user are not expired or user does not have any loans
+        Returns False if user has at least one expired loan
+        """
+        return all([not user_loan.is_expired(session) for user_loan in self.loans])
+
+    def rate_adjustment_is_needed(self) -> bool:
+        return self.savings_account.interest_rate != \
+            SavingsAccount.define_rate_for_amount(self.savings_account.savings_amount)
 
     def withdraw_savings(self, amount: float):
         if self.status == UserStatusSavingEnum.LOCKED:
