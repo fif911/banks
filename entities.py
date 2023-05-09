@@ -188,7 +188,7 @@ class User:
             raise ValueError("User is locked")
         if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
-        if len(self.loans) > 3:
+        if len(self.loans) >= 3:
             raise ValueError("User can not have more than 3 loans concurrently")
         self.loans.append(loan)
         self.savings_account.savings_amount = IOUtils.round_float_to_2_decimal_places(
@@ -200,6 +200,8 @@ class User:
         """Function that allows user to pay for a loan and removes the loan if it is paid in full
 
         Function will deduct the respective amount from the savings account"""
+        if amount > self.savings_account.savings_amount:
+            raise ValueError("Not enough savings to pay for the loan")
         status = loan.pay(amount, prefix=prefix)
         self.savings_account.savings_amount = IOUtils.round_float_to_2_decimal_places(
             self.savings_account.savings_amount - amount
@@ -214,6 +216,8 @@ class User:
             raise ValueError("User is locked")
         if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
+        if amount > self.savings_account.savings_amount:
+            raise ValueError("Not enough savings to withdraw")
         self.savings_account.withdraw_savings(amount)
 
     def deposit_savings(self, deposit_amount: float):
