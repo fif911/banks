@@ -1,5 +1,6 @@
 import enum
 import random
+import unittest.mock
 from typing import List, Optional
 
 from faker import Faker
@@ -18,11 +19,13 @@ class Session:
         self.faker = Faker()
 
     def populate_db(self):
-        for _ in range(10):
-            user = User(self, savings=random.randint(0, 50_000))
-            for _ in range(random.randint(0, 3)):
-                user.add_loan(Loan(random.randint(0, 10_000), self.current_time))
-            self.users.append(user)
+        with unittest.mock.patch(print.__module__ + ".print"):
+            for _ in range(10):
+                user = User(self)
+                for _ in range(random.randint(0, 3)):
+                    user.add_loan(Loan(random.randint(0, 10_000), self.current_time))
+                user.savings_account.savings_amount = random.randint(0, 30_000)
+                self.users.append(user)
 
 
 class UserStatusSavingEnum(str, enum.Enum):
