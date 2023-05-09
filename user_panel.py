@@ -9,23 +9,35 @@ USER_MENU_PROMPT_MESSAGE = "Choose the action from the Main User Menu: "
 def handle_user_deposit_money_action(user):
     deposit_amount = IOUtils.input_float("Enter the amount you want to deposit (at least €1 and at most €1 million): ",
                                          lower_bound=1, upper_bound=1_000_000)
-    user.deposit_savings(deposit_amount)
+    try:
+        user.deposit_savings(deposit_amount)
+    except ValueError as e:
+        print("Error: ", e)
 
 
-def handle_user_withdraw_money_action(user):
+def handle_user_withdraw_money_action(user: User):
     if user.savings_account.savings_amount <= 0:
         print("You have no money in your savings account. Thus it is not possible to withdraw money.")
         return
     withdraw_amount = IOUtils.input_float("Enter the amount you want to withdraw: ", lower_bound=1,
                                           upper_bound=user.savings_account.savings_amount)
-    user.withdraw_savings(withdraw_amount)
+    try:
+        user.withdraw_savings(withdraw_amount)
+    except ValueError as e:
+        print("Error: ", e)
 
 
 def handle_user_take_a_loan_action(session: Session, user: User):
+    if len(user.loans) >= 3:
+        print("User can not have more than 3 loans concurrently")
+        return
     loan_amount = IOUtils.input_float("Enter the amount of the loan (at least €1 and at most €10000): ", lower_bound=1,
                                       upper_bound=10_000)
     new_loan = Loan.issue_loan(session, loan_amount)
-    user.add_loan(new_loan)
+    try:
+        user.add_loan(new_loan)
+    except ValueError as e:
+        print("Error: ", e)
 
 
 def handle_user_pay_a_loan_action(user):
@@ -48,7 +60,10 @@ def handle_user_pay_a_loan_action(user):
         f"Enter the amount you want to pay (at least €0.01 and at most €{sum_to_pay_at_most}): ",
         lower_bound=0.01, upper_bound=loan.sum)
 
-    user.pay_loan(loan, pay_amount)
+    try:
+        user.pay_loan(loan, pay_amount)
+    except ValueError as e:
+        print("Error: ", e)
 
 
 class UserActionEnum(enum.Enum):
