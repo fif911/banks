@@ -6,19 +6,6 @@ from entities import Session, UserStatusSavingEnum, LoanStatusEnum, User
 from utils import IOUtils
 
 
-def _at_least_one_user_loan_is_overdue(user, session: Session):
-    return any([user_loan.is_expired(session) for user_loan in user.loans])
-
-
-def _user_has_no_expired_loans(user, session: Session):
-    """Function to check if user has no expired loans.
-
-    Returns True if all loans that user are not expired or user does not have any loans
-    Returns False if user has at least one expired loan
-    """
-    return all([not user_loan.is_expired(session) for user_loan in user.loans])
-
-
 def _user_in_one_month(user, session: Session) -> User:
     """Function calculates the user status in one month.
 
@@ -34,7 +21,7 @@ def _user_in_one_month(user, session: Session) -> User:
     """
     print(" " * 10 + f" * User {user.full_name} (status: {user.status})")
     if user.status == UserStatusSavingEnum.OVERDUE_LOANS:
-        if _at_least_one_user_loan_is_overdue(user, session):
+        if user.at_least_one_user_loan_is_overdue(session):
             # Lock user if one has overdue status for 1 month and failed to pay all overdue loans on their
             # own during the grace period
             user.status = UserStatusSavingEnum.LOCKED
@@ -60,7 +47,7 @@ def _user_in_one_month(user, session: Session) -> User:
 
     if user.status == UserStatusSavingEnum.ACTIVE:
         # If user has overdue loans, set their status to overdue
-        if _at_least_one_user_loan_is_overdue(user, session):
+        if user.at_least_one_user_loan_is_overdue(session):
             user.status = UserStatusSavingEnum.OVERDUE_LOANS
             print(" " * 20 + "User has overdue loans. Setting status to OVERDUE_LOANS.")
 
@@ -88,8 +75,8 @@ def _user_in_one_month(user, session: Session) -> User:
         # Remove paid loans
         user.loans = [user_loan for user_loan in user.loans if not user_loan.status == LoanStatusEnum.PAID]
 
-        # If all expired loans were successfully paid, set status back to active
-        if _user_has_no_expired_loans(user, session):
+        # If all overdue loans were successfully paid, set status back to active
+        if user.has_no_overdue_loans(session):
             user.status = UserStatusSavingEnum.ACTIVE
             print(" " * 20 + "All loans are paid. Setting status back to ACTIVE.")
     return user
