@@ -106,18 +106,23 @@ def handle_simulate_action(session: Session):
     del session
     IOUtils.print_section("Simulation")
 
+    i = 0
     while True:
         enter_or_exit = IOUtils.input_str(
-            f"Click enter to run simulation for {simulated_session.current_time + 1} month ahead. Type 'exit' to exit. ",
+            f"Click enter to run simulation for {i + 1} month ahead. Type 'exit' to exit. ",
             expected_values=["", "exit"])
         if enter_or_exit == "exit":
             print("Exiting simulation...")
             break
 
         simulated_session.current_time += 1
+        i += 1
+        if i > 30:
+            print("Simulation is limited to 30 months ahead. Exiting simulation...\n")
+            break
         print(f"Note: Current real time is {current_real_time}.")
         IOUtils.print_section(
-            f"Simulation results for {simulated_session.current_time} month(s) ahead:")
+            f"Simulation results for {i} month(s) ahead:")
 
         # Perform one month forward action with suppressed prints for simulated session
         users_in_one_month = []
@@ -140,6 +145,7 @@ def handle_simulate_action(session: Session):
             users_in_one_month.append(user_in_one_month)
 
         simulated_session.users = users_in_one_month  # save calculated users to the session
+        print(" " * 5 + f" * Total amount of money in the bank will be €{simulated_session.money_in_bank:.2f}")
         print("Done.")
 
 
@@ -169,7 +175,7 @@ def handle_administration_mode(session: Session):
         print("The current time is " + str(session.current_time) + " month(s)." + "\n")
 
         action = IOUtils.print_menu_and_return_choice(
-            ["View all users", "Run simulation", "Go one month ahead", "Log out"])
+            ["View all users", "Run simulation", "Go one month ahead", "Add random customer", "Log out"])
         if action == 1:
             handle_user_list_action(session)
         if action == 2:
@@ -177,5 +183,13 @@ def handle_administration_mode(session: Session):
         if action == 3:
             handle_month_forward_action(session)
         if action == 4:
+            print("Adding a random customer...")
+            try:
+                session.users.append(User.generate_random_user(session))
+            except ValueError as e:
+                print("Failed to add a random user. Error: " + str(e) + "\n")
+                continue
+            print("Done.")
+        if action == 5:
             print("Logging out...")
             return
