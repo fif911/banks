@@ -8,7 +8,12 @@ USER_MENU_PROMPT_MESSAGE = "Choose the action from the Main User Menu: "
 
 def print_user_dashboard(user: User, session: Session):
     print("-" * 10 + " Your dashboard " + "-" * 10)
-    print("Your " + str(user.savings_account))
+    print(
+        f"Your savings account has €{user.savings_account.savings_amount} at interest rate of {user.savings_account.interest_rate * 100}% (Note: Saving Account includes amount of money added with loans that you have taken)")
+    print(f"Your total €{user.personal_savings_amount:.2f} in Personal Savings.")
+    if user.personal_savings_amount < 0:
+        print(" " * 10 + " * (Negative Personal Savings shows how much you have to deposit to cover all your loans)")
+    print()
     if user.loans:
         print(f"You have {len(user.loans)} loans. They are:")
         for loan in user.loans:
@@ -28,6 +33,9 @@ def print_user_dashboard(user: User, session: Session):
     if user.rate_adjustment_is_needed():
         notifications.append(" * Due to your (or automatic) recent actions your savings interest rate will be "
                              "adjusted at the begging of the next month.")
+    if user.personal_savings_amount < 0:
+        notifications.append(" * Your personal savings account has negative balance. "
+                             "Consider depositing money to pay off your loans.")
     if not notifications:
         print(" * You have no notifications.")
     else:
@@ -45,14 +53,14 @@ def handle_user_deposit_money_action(user):
         print("Error: ", e)
 
 
-def handle_user_withdraw_money_action(user: User):
+def handle_user_withdraw_money_action(session, user: User):
     if user.savings_account.savings_amount <= 0:
         print("You have no money in your savings account. Thus it is not possible to withdraw money.")
         return
     withdraw_amount = IOUtils.input_float("Enter the amount you want to withdraw: ", lower_bound=1,
                                           upper_bound=user.savings_account.savings_amount)
     try:
-        user.withdraw_savings(withdraw_amount)
+        user.withdraw_savings(session, withdraw_amount)
     except ValueError as e:
         print("Error: ", e)
 
@@ -63,9 +71,9 @@ def handle_user_take_a_loan_action(session: Session, user: User):
         return
     loan_amount = IOUtils.input_float("Enter the amount of the loan (at least €1 and at most €10000): ", lower_bound=1,
                                       upper_bound=10_000)
-    new_loan = Loan.issue_loan(session, loan_amount)
+    new_loan = Loan.create_loan_object(session, loan_amount)
     try:
-        user.add_loan(new_loan)
+        user.add_loan(session, new_loan)
     except ValueError as e:
         print("Error: ", e)
 
@@ -149,7 +157,7 @@ def handle_user_mode(session: Session):
         if user_chosen_action == UserActionEnum.DEPOSIT:
             handle_user_deposit_money_action(user)
         elif user_chosen_action == UserActionEnum.WITHDRAW:
-            handle_user_withdraw_money_action(user)
+            handle_user_withdraw_money_action(session, user)
         elif user_chosen_action == UserActionEnum.TAKE_A_LOAN:
             handle_user_take_a_loan_action(session, user)
         elif user_chosen_action == UserActionEnum.PAY_A_LOAN:
