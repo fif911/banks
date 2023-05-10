@@ -145,7 +145,11 @@ def handle_simulate_action(session: Session):
             users_in_one_month.append(user_in_one_month)
 
         simulated_session.users = users_in_one_month  # save calculated users to the session
-        print(" " * 5 + f" * Total amount of money in the bank will be €{simulated_session.money_in_bank:.2f}")
+
+        # Suppress print that may be called in the function not to give out the vulnerability of the system so easily
+        with unittest.mock.patch(print.__module__ + ".print"):
+            money_in_bank = simulated_session.money_in_bank
+        print(" " * 5 + f" * Total amount of money in the bank will be €{money_in_bank:.2f}")
         print("Done.")
 
 
