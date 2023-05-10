@@ -12,22 +12,47 @@ class Session:
     current_time: int  # current time in months
     users: List["User"]
     faker: Faker
-    money_in_bank: float
+    initial_money_in_bank: float
 
     def __init__(self):
         self.users = []
         self.current_time = 0
         self.faker = Faker()
-        self.money_in_bank = 1_000_000  # 1 million euro TODO: incorporate this
+        self.initial_money_in_bank = 1_000_000  # 1 million euro
 
     def populate_db(self):
         with unittest.mock.patch(print.__module__ + ".print"):
             for _ in range(10):
                 user = User(self)
-                for _ in range(random.randint(0, 3)):
-                    user.add_loan(Loan(random.randint(1, 10_000), self.current_time))
                 user.savings_account.savings_amount = random.randint(0, 30_000)
+                user.savings_account.interest_rate = user.savings_account.define_rate_for_amount(
+                    user.savings_account.savings_amount)
+                for _ in range(random.randint(0, 3)):
+                    user.add_loan(self, Loan.create_loan_object(self, random.randint(1, 10_000)))
                 self.users.append(user)
+
+    @property
+    def money_in_bank(self):
+        money_in_bank = IOUtils.round_float_to_2_decimal_places(
+            self.initial_money_in_bank + self.total_user_savings - self.total_user_loans
+        )
+        # if money_in_bank < 0:
+        #     raise RuntimeError("Money in the bank cannot be negative. You broke the bank.")
+        return money_in_bank
+
+    @property
+    def total_user_savings(self):
+        return IOUtils.round_float_to_2_decimal_places(
+            sum([user.savings_account.savings_amount for user in self.users]))
+
+    @property
+    def total_user_loans(self):
+        return IOUtils.round_float_to_2_decimal_places(
+            sum([sum([loan.sum for loan in user.loans]) for user in self.users]))
+
+    @property
+    def total_user_personal_savings(self):
+        return IOUtils.round_float_to_2_decimal_places(self.total_user_savings - self.total_user_loans)
 
 
 class UserStatusSavingEnum(str, enum.Enum):
@@ -114,7 +139,7 @@ class Loan:
         print(loan_print)
 
     @staticmethod
-    def issue_loan(session: Session, loan_amount: float):
+    def create_loan_object(session: Session, loan_amount: float):
         """Loan factory method"""
         return Loan(loan_amount, session.current_time)
 
@@ -160,11 +185,11 @@ class SavingsAccount:
         self.savings_amount -= amount
         print(f"Withdrawn €{amount} from savings account. Current savings: ${self.savings_amount}")
 
-    def apply_and_adjust_interest_rate(self):
+    def apply_and_adjust_interest_rate(self, session: Session):
         """Function that applies interest rate to the savings amount and adjusts the interest rate after"""
         monthly_interest_rate = self.interest_rate / 12
-        self.savings_amount = IOUtils.round_float_to_2_decimal_places(
-            self.savings_amount * (1 + monthly_interest_rate))
+        monthly_interest = IOUtils.round_float_to_2_decimal_places(self.savings_amount * monthly_interest_rate)
+        self.savings_amount = IOUtils.round_float_to_2_decimal_places(self.savings_amount + monthly_interest)
         self.interest_rate = self.define_rate_for_amount(self.savings_amount)
 
     def __str__(self):
@@ -185,13 +210,19 @@ class User:
         self.savings_account = SavingsAccount(savings)
         self.status = UserStatusSavingEnum.ACTIVE
 
-    def add_loan(self, loan: Loan):
+    def add_loan(self, session: Session, loan: Loan):
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
         if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
         if len(self.loans) >= 3:
             raise ValueError("User can not have more than 3 loans concurrently")
+
+        if session.money_in_bank < loan.sum:
+            raise ValueError(
+                f"Sorry! Bank do not have enough money to issue the loan. You ask for €{loan.sum} but bank has only "
+                f"€{session.money_in_bank}. Please try again later.")
+
         self.loans.append(loan)
         self.savings_account.savings_amount = IOUtils.round_float_to_2_decimal_places(
             self.savings_account.savings_amount + loan.sum
@@ -233,19 +264,31 @@ class User:
         return self.savings_account.interest_rate != \
             SavingsAccount.define_rate_for_amount(self.savings_account.savings_amount)
 
-    def withdraw_savings(self, amount: float):
+    def withdraw_savings(self, session: Session, amount: float):
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
         if self.status == UserStatusSavingEnum.OVERDUE_LOANS:
             raise ValueError("User has unpaid loans")
         if amount > self.savings_account.savings_amount:
             raise ValueError("Not enough savings to withdraw")
+        if session.money_in_bank < amount:
+            raise ValueError(
+                f"Excuse us! You ask us for €{amount} but there are only €{session.money_in_bank} in the bank left. "
+                "Please try again later, when someone pays the loans or deposits money to the bank.")
         self.savings_account.withdraw_savings(amount)
 
     def deposit_savings(self, deposit_amount: float):
         if self.status == UserStatusSavingEnum.LOCKED:
             raise ValueError("User is locked")
         self.savings_account.add_savings(deposit_amount)
+
+    @property
+    def personal_savings_amount(self):
+        return self.savings_account.savings_amount - self.total_loans
+
+    @property
+    def total_loans(self):
+        return IOUtils.round_float_to_2_decimal_places(sum([loan.sum for loan in self.loans]))
 
     def __repr__(self):
         return f"User(username={self.username}, full_name={self.full_name}, loans={self.loans}, " \
