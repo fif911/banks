@@ -33,7 +33,7 @@ After that, you will find an executable in the `dist` folder.
 To generate an executable for Windows, run:
 
 ```bash
-pyinstaller --onefile --windowed --name 'Bank Executable Windows' main.py
+pyinstaller --onefile --name 'Bank Executable Windows' main.py
 ```
 
 After that, you will find an executable in the `dist` folder.
