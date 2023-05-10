@@ -168,6 +168,7 @@ def handle_administration_mode(session: Session):
     print("You can view all the users and their details, run simulations and go one month ahead.")
 
     while True:
+        print("\n" + "-" * 10 + " Administrator dashboard " + "-" * 10)
         print(f" * The initial amount of the money the bank had €{session.initial_money_in_bank}.")
         print(f" * The current amount money in the bank is €{session.money_in_bank:.2f}")
         print(f" * Total amount of user savings in the bank is €{session.total_user_savings:.2f} "
@@ -175,8 +176,8 @@ def handle_administration_mode(session: Session):
         print(f" * Total amount of user personal savings €{session.total_user_personal_savings:.2f} "
               f"(excluding amount they obtained by taking loans).")
         print(f" * Total amount of user loans is €{session.total_user_loans:.2f}.")
-
-        print("The current time is " + str(session.current_time) + " month(s)." + "\n")
+        print(" * The current time is " + str(session.current_time) + " month(s).")
+        print("-" * 10 + " End of your dashboard " + "-" * 10)
 
         action = IOUtils.print_menu_and_return_choice(
             ["View all users", "Run simulation", "Go one month ahead", "Add random customer", "Log out"])
