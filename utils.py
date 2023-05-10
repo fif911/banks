@@ -19,7 +19,8 @@ class IOUtils:
                     raise ValueError(f"Value must be at most {upper_bound}")
                 return value
             except ValueError as e:
-                print("Incorrect value! Try again. Details: " + str(e))
+                print(f"Incorrect value! Value must be interger from {lower_bound} to {upper_bound} inclusive. "
+                      "Try again. Details: " + str(e))
 
     @staticmethod
     def input_float(message, lower_bound=None, upper_bound=None) -> float:
@@ -36,7 +37,8 @@ class IOUtils:
                     raise ValueError(f"Value must be at most {upper_bound}")
                 return IOUtils.round_float_to_2_decimal_places(value)
             except ValueError as e:
-                print("Incorrect value! Try again. Details: " + str(e))
+                print(f"Incorrect value! Value must be float from {lower_bound} to {upper_bound} inclusive. "
+                      f"Try again. Details: " + str(e))
 
     @staticmethod
     def input_str(message, expected_values: Optional[List[str]] = None) -> str:
