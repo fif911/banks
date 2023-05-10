@@ -1,3 +1,4 @@
+import copy
 import enum
 import random
 import unittest.mock
@@ -18,17 +19,12 @@ class Session:
         self.users = []
         self.current_time = 0
         self.faker = Faker()
-        self.initial_money_in_bank = 1_000_000  # 1 million euro
+        self.initial_money_in_bank = 100_000  # 100 thousand euros
 
     def populate_db(self):
         with unittest.mock.patch(print.__module__ + ".print"):
             for _ in range(10):
-                user = User(self)
-                user.savings_account.savings_amount = random.randint(0, 30_000)
-                user.savings_account.interest_rate = user.savings_account.define_rate_for_amount(
-                    user.savings_account.savings_amount)
-                for _ in range(random.randint(0, 3)):
-                    user.add_loan(self, Loan.create_loan_object(self, random.randint(1, 10_000)))
+                user = User.generate_random_user(self)
                 self.users.append(user)
 
     @property
@@ -36,8 +32,11 @@ class Session:
         money_in_bank = IOUtils.round_float_to_2_decimal_places(
             self.initial_money_in_bank + self.total_user_savings - self.total_user_loans
         )
-        # if money_in_bank < 0:
-        #     raise RuntimeError("Money in the bank cannot be negative. You broke the bank.")
+
+        if money_in_bank < 0:
+            IOUtils.print_header(
+                f"\nCRITICAL: Amount in the bank is {money_in_bank}. Money in the bank cannot be negative. "
+                f"You broke the bank!\n")
         return money_in_bank
 
     @property
@@ -203,7 +202,7 @@ class User:
     savings_account: SavingsAccount
     status: UserStatusSavingEnum
 
-    def __init__(self, session: Session, loans: Optional[Loan] = None, savings: int = 0):
+    def __init__(self, session: Session, loans: Optional[List[Loan]] = None, savings: int = 0):
         self.full_name = session.faker.unique.first_name() + " " + session.faker.unique.last_name()
         self.username = self.full_name.lower().replace(" ", "_")
         self.loans = loans or []
@@ -274,7 +273,7 @@ class User:
         if session.money_in_bank < amount:
             raise ValueError(
                 f"Excuse us! You ask us for €{amount} but there are only €{session.money_in_bank} in the bank left. "
-                "Please try again later, when someone pays the loans or deposits money to the bank.")
+                "Please try again later, deposits money to the bank.")
         self.savings_account.withdraw_savings(amount)
 
     def deposit_savings(self, deposit_amount: float):
@@ -289,6 +288,19 @@ class User:
     @property
     def total_loans(self):
         return IOUtils.round_float_to_2_decimal_places(sum([loan.sum for loan in self.loans]))
+
+    @staticmethod
+    def generate_random_user(session: Session):
+        """Function that generates a random user with random loans and savings amount"""
+        loans = [Loan.create_loan_object(session, random.randint(0, 10_000)) for _ in
+                 range(random.randint(0, 3))]
+        user = User(session=session, loans=loans, savings=random.randint(0, 30_000))
+        fake_session = copy.deepcopy(session)
+        fake_session.users.append(user)
+        if fake_session.money_in_bank < 0:
+            raise ValueError("Random user can not be generated, otherwise bank will not have money left.")
+
+        return user
 
     def __repr__(self):
         return f"User(username={self.username}, full_name={self.full_name}, loans={self.loans}, " \
