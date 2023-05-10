@@ -37,12 +37,12 @@ def _user_in_one_month(user, session: Session) -> User:
         print(" " * 20 + "User is LOCKED. Reason: Overdue unpaid loans.")
         return user
 
-    # Increase loans and savings by interest rate
+    # Increase loans and savings by interest rate that was set at the beginning of the previous month
     for user_loan in user.loans:
         user_loan.apply_interest_rate()
 
-    # Adjust interest rate if needed
-    user.savings_account.apply_and_adjust_interest_rate()
+    # Adjust interest rate if needed, s.t. in the next month a new interest rate will be applied
+    user.savings_account.apply_and_adjust_interest_rate(session)
     print(" " * 20 + "Interest rate for loans and savings applied.")
 
     if user.status == UserStatusSavingEnum.ACTIVE:
@@ -86,10 +86,12 @@ def handle_user_list_action(session: Session):
     for i, user in enumerate(session.users):
         print(
             f"{i + 1} - {user.full_name}, Savings: €{user.savings_account.savings_amount:.2f} (at {user.savings_account.interest_rate * 100}%), status: {user.status}")
-        for loan in user.loans:
-            loan.pretty_print_loan(session, prefix=" " * 10)
-
-        if not user.loans:
+        if user.loans:
+            print(" " * 10 + f"User owes to the bank in total €{user.total_loans}. "
+                             f"(Note that this amount is added to user's savings account)")
+            for loan in user.loans:
+                loan.pretty_print_loan(session, prefix=" " * 10)
+        else:
             print(" " * 10 + "No loans")
 
 
@@ -153,8 +155,19 @@ def handle_month_forward_action(session: Session):
 
 def handle_administration_mode(session: Session):
     IOUtils.print_header("Welcome to the administrator mode!")
-    print("You can view all the users and their details and run simulations.")
+    print("You can view all the users and their details, run simulations and go one month ahead.")
+
     while True:
+        print(f" * The initial amount of the money the bank had €{session.initial_money_in_bank}.")
+        print(f" * The current amount money in the bank is €{session.money_in_bank:.2f}")
+        print(f" * Total amount of user savings in the bank is €{session.total_user_savings:.2f} "
+              f"(including amount they obtained by taking loans).")
+        print(f" * Total amount of user personal savings €{session.total_user_personal_savings:.2f} "
+              f"(excluding amount they obtained by taking loans).")
+        print(f" * Total amount of user loans is €{session.total_user_loans:.2f}.")
+
+        print("The current time is " + str(session.current_time) + " month(s)." + "\n")
+
         action = IOUtils.print_menu_and_return_choice(
             ["View all users", "Run simulation", "Go one month ahead", "Log out"])
         if action == 1:
