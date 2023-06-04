@@ -1,8 +1,8 @@
-# Banks and Loans
+# Banks, Loans and Simulations
 
 ## Description
 
-This is a CLI simple application that allows you to create users, loans and administrate them via admin panel.
+This is a CLI application that allows you to create users, loans and administrate them via admin panel. By default the application will create 10 random users with that have some loans and some money on their savings account. When the demo DB is populated - user can log in to their system and make actions in their account like deposit, withdraw, take or pay loans. Bank keeps track of the available amount of money and must never go bankrupt (by giving our more loans that there is money and/or disallowing users to withdraw money). The bank administrator can run simulation to see what would be the health status of the bank in a few month.
 
 ## How to run
 
